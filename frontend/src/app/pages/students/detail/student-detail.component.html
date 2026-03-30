@@ -1,0 +1,21 @@
+<div class="card m-3">
+  <h5 class="card-header">Détail de l'étudiant</h5>
+  <div class="card-body">
+
+    @if (errorMessage) {
+      <div class="alert alert-danger">{{ errorMessage }}</div>
+    }
+
+    @if (student) {
+      <p><strong>ID :</strong> {{ student.id }}</p>
+      <p><strong>Prénom :</strong> {{ student.firstName }}</p>
+      <p><strong>Nom :</strong> {{ student.lastName }}</p>
+      <p><strong>Email :</strong> {{ student.email }}</p>
+      <div class="text-center mt-3">
+        <button class="btn btn-warning mr-1" (click)="goToEdit()">Modifier</button>
+        <button class="btn btn-secondary" (click)="goBack()">Retour</button>
+      </div>
+    }
+
+  </div>
+</div>

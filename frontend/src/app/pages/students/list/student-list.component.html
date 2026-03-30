@@ -1,0 +1,45 @@
+<div class="card m-3">
+  <h5 class="card-header">
+    Liste des étudiants
+    <button class="btn btn-primary btn-sm float-right" (click)="goToCreate()">+ Ajouter</button>
+  </h5>
+  <div class="card-body">
+
+    @if (errorMessage) {
+      <div class="alert alert-danger">{{ errorMessage }}</div>
+    }
+
+    @if (students.length === 0) {
+      <p class="text-muted">Aucun étudiant enregistré.</p>
+    }
+
+    @if (students.length > 0) {
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (student of students; track student.id) {
+            <tr>
+              <td>{{ student.id }}</td>
+              <td>{{ student.firstName }}</td>
+              <td>{{ student.lastName }}</td>
+              <td>{{ student.email }}</td>
+              <td>
+                <button class="btn btn-info btn-sm mr-1" (click)="goToDetail(student.id)">Détail</button>
+                <button class="btn btn-danger btn-sm" (click)="delete(student.id)">Supprimer</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+  </div>
+</div>
