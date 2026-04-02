@@ -29,7 +29,7 @@ services:
       DB_NAME: ${DB_NAME:-etudiant_db}
       DB_USER: ${DB_USER:-etudiant}
       DB_PASSWORD: ${DB_PASSWORD:-etudiant_pass}
-      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production_secret_key_32bytes_min}
     depends_on:
       mysql:
         condition: service_healthy
