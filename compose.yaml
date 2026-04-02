@@ -1,0 +1,119 @@
+services:
+
+  # ── Base de données ──────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-etudiant_db}
+      MYSQL_USER: ${DB_USER:-etudiant}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-etudiant_pass}
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend Spring Boot ──────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-etudiant_db}
+      DB_USER: ${DB_USER:-etudiant}
+      DB_PASSWORD: ${DB_PASSWORD:-etudiant_pass}
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ── Frontend Angular (nginx) ─────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Tests backend : unitaires + intégration (Testcontainers) ─────────────────
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    profiles: [test]
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - maven_cache:/root/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./docker-proxy.py:/tmp/docker-proxy.py:ro
+      - ./testcontainers.properties:/root/.testcontainers.properties:ro
+    environment:
+      DOCKER_HOST: unix:///tmp/docker-proxy.sock
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    command: >
+      bash -c "python3 /tmp/docker-proxy.py &
+               sleep 2 &&
+               mvn test"
+
+  # ── Tests frontend : unitaires Jest ──────────────────────────────────────────
+  frontend-test:
+    image: node:20-alpine
+    profiles: [test]
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - node_modules_test:/app/node_modules
+    command: sh -c "npm ci --quiet && npm test -- --passWithNoTests"
+
+  # ── Tests E2E Cypress ────────────────────────────────────────────────────────
+  cypress:
+    image: cypress/included:13.17.0
+    profiles: [test, e2e]
+    depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      CYPRESS_baseUrl: http://frontend
+    working_dir: /e2e
+    volumes:
+      - ./frontend:/e2e
+    command: ["cypress", "run", "--browser", "electron"]
+
+  # ── Orchestrateur : attend que tous les tests réussissent ─────────────────────
+  test-all:
+    image: alpine
+    profiles: [test]
+    depends_on:
+      backend-test:
+        condition: service_completed_successfully
+      frontend-test:
+        condition: service_completed_successfully
+      cypress:
+        condition: service_completed_successfully
+    command: echo "Tous les tests ont réussi"
+
+volumes:
+  db_data:
+  maven_cache:
+  node_modules_test:

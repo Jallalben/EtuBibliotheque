@@ -11,11 +11,9 @@ import com.openclassrooms.etudiant.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.openclassrooms.etudiant.AbstractIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -28,21 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
  * Stratégie :
  * - Spring Boot complet démarré (@SpringBootTest)
  * - MockMvc simule de vraies requêtes HTTP sans serveur réseau
- * - H2 en mémoire remplace MySQL : pas besoin de Docker
+ * - MySQL réel via Testcontainers (hérité de AbstractIntegrationTest)
  * - Un token JWT valide est généré avant chaque test (@BeforeEach)
  * - La base de données est nettoyée après chaque test (@AfterEach)
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
-public class StudentControllerTest {
+public class StudentControllerTest extends AbstractIntegrationTest {
 
     private static final String URL        = "/api/students";
     private static final String FIRST_NAME = "Alice";

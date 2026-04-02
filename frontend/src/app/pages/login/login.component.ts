@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: (token: string) => {
           localStorage.setItem('token', token);
-          this.router.navigate(['/']);
+          this.router.navigate(['/students']);
         },
         error: (err) => {
           this.errorMessage = err.error?.message || 'Identifiants invalides';

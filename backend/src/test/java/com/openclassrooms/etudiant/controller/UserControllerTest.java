@@ -7,11 +7,9 @@ import com.openclassrooms.etudiant.repository.UserRepository;
 import com.openclassrooms.etudiant.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import com.openclassrooms.etudiant.AbstractIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -20,19 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 /**
  * Tests d'intégration pour UserController.
- * H2 en mémoire remplace MySQL : pas besoin de Docker.
+ * MySQL réel via Testcontainers (hérité de AbstractIntegrationTest).
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureMockMvc
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;NON_KEYWORDS=USER",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
-        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
-})
-public class UserControllerTest {
+public class UserControllerTest extends AbstractIntegrationTest {
 
     private static final String URL = "/api/register";
     private static final String FIRST_NAME = "John";
